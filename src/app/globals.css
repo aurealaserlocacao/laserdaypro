@@ -19,5 +19,10 @@ body {
 }
 button, input { font: inherit; }
 
-.field { display:block; width:100%; margin-top:.5rem; border:1px solid #e2e8f0; border-radius:.75rem; padding:.75rem 1rem; outline:none; background:white; color:#20252d; }
+.field { display:block; width:100%; min-width:0; margin-top:.5rem; border:1px solid #e2e8f0; border-radius:.75rem; padding:.75rem 1rem; outline:none; background:white; color:#20252d; font-size:16px; }
 .field:focus { border-color:#6654d9; box-shadow:0 0 0 3px #eeeaff; }
+
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+button, a, input, select, textarea { touch-action: manipulation; }
