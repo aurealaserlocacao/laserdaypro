@@ -16,6 +16,7 @@ export default function AuthCallbackPage() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
       const errorDescription = params.get("error_description");
+      const nextPath = params.get("next");
       if (errorDescription) {
         if (active) setMessage("O link de confirmação expirou ou não é válido. Solicite um novo e-mail de confirmação.");
         return;
@@ -31,7 +32,7 @@ export default function AuthCallbackPage() {
       if (data.session) {
         if (active) {
           setMessage("E-mail confirmado! Abrindo seu painel...");
-          router.replace("/");
+          router.replace(nextPath && nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/");
         }
       } else if (active) {
         setMessage("Não encontramos uma sessão válida. Volte ao login e tente entrar novamente.");
