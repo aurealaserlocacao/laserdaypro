@@ -1,86 +1,56 @@
 "use client";
+import { FormEvent, useCallback, useEffect, useState } from "react";
+import { ArrowRight, Building2, CalendarDays, LoaderCircle, LogOut, ShieldCheck, Users, Wallet } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 
-import { useState } from "react";
-import {
-  Activity, CalendarDays, ChevronDown, CircleHelp, Clock3, CreditCard,
-  LayoutDashboard, LogOut, Menu, Plus, Search, Settings, Users, Wallet,
-  X, CheckCircle2, Bell, ArrowUpRight, CalendarCheck,
-} from "lucide-react";
-
-const menu = [
-  { label: "Visão geral", icon: LayoutDashboard },
-  { label: "Agenda", icon: CalendarDays },
-  { label: "Clientes", icon: Users },
-  { label: "Financeiro", icon: Wallet },
-  { label: "Documentos", icon: CreditCard },
-  { label: "Relatórios", icon: Activity },
-];
-const appointments = [
-  { time: "09:00", name: "Mariana Costa", service: "Axilas + virilha", status: "Confirmado", color: "violet" },
-  { time: "10:30", name: "Camila Oliveira", service: "Perna completa", status: "Aguardando", color: "amber" },
-  { time: "13:00", name: "Fernanda Lima", service: "Buço + queixo", status: "Confirmado", color: "violet" },
-  { time: "14:30", name: "Juliana Santos", service: "Axilas", status: "Em atendimento", color: "green" },
-];
+const supabase = createClient();
+type Clinic = { id: string; name: string };
+type Appt = { id: string; starts_at: string; service_name: string; status: string; clients: { full_name: string } | null };
 
 export default function Home() {
-  const [active, setActive] = useState("Visão geral");
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const [query, setQuery] = useState("");
-
-  return (
-    <main className="min-h-screen flex">
-      <aside className={`fixed inset-y-0 left-0 z-30 w-[250px] bg-white border-r border-[var(--line)] p-5 flex flex-col transition-transform lg:static lg:translate-x-0 ${mobileMenu ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center gap-3 px-1 mb-9">
-          <div className="w-10 h-10 rounded-2xl bg-[#6654d9] text-white grid place-items-center font-bold text-lg">L</div>
-          <div><div className="font-bold tracking-tight text-[17px]">Laser Day <span className="text-[#6654d9]">Pro</span></div><div className="text-xs text-slate-400">Gestão inteligente</div></div>
-          <button className="ml-auto lg:hidden" onClick={() => setMobileMenu(false)} aria-label="Fechar menu"><X size={18}/></button>
-        </div>
-        <div className="text-[10px] font-bold uppercase tracking-[.16em] text-slate-400 px-3 mb-3">Menu principal</div>
-        <nav className="space-y-1">
-          {menu.map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActive(label); setMobileMenu(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition ${active === label ? "bg-[#f0edff] text-[#5d4bd0]" : "text-slate-500 hover:bg-slate-50"}`}><Icon size={18}/>{label}</button>)}
-        </nav>
-        <div className="mt-auto">
-          <button className="w-full flex gap-3 items-center text-sm text-slate-500 px-3 py-3 hover:bg-slate-50 rounded-xl"><Settings size={18}/> Configurações</button>
-          <button className="w-full flex gap-3 items-center text-sm text-slate-500 px-3 py-3 hover:bg-slate-50 rounded-xl"><CircleHelp size={18}/> Central de ajuda</button>
-          <div className="border-t border-[var(--line)] mt-4 pt-4 flex items-center gap-3 px-2">
-            <div className="w-9 h-9 rounded-full bg-[#eeeaff] text-[#6654d9] grid place-items-center text-sm font-bold">AD</div>
-            <div className="min-w-0"><div className="text-sm font-semibold truncate">Admin da clínica</div><div className="text-xs text-slate-400">Plano demonstração</div></div>
-            <LogOut size={16} className="ml-auto text-slate-400"/>
-          </div>
-        </div>
-      </aside>
-      {mobileMenu && <button className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setMobileMenu(false)} aria-label="Fechar menu"/>}
-      <section className="min-w-0 flex-1">
-        <header className="h-[76px] bg-white border-b border-[var(--line)] flex items-center justify-between px-5 md:px-9">
-          <div className="flex items-center gap-3"><button className="lg:hidden text-slate-500" onClick={() => setMobileMenu(true)} aria-label="Abrir menu"><Menu/></button><div><div className="font-semibold text-sm md:text-base">Clínica Aurea</div><div className="text-xs text-slate-400">Quarta-feira, 28 de outubro</div></div></div>
-          <div className="flex items-center gap-3"><button className="w-10 h-10 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-50 relative" aria-label="Notificações"><Bell size={19}/><span className="absolute right-2 top-2 w-2 h-2 rounded-full bg-rose-500"/></button><div className="hidden sm:flex items-center gap-2 border-l border-[var(--line)] pl-4"><div className="w-9 h-9 rounded-full bg-[#eeeaff] text-[#6654d9] grid place-items-center text-sm font-bold">AD</div><ChevronDown size={15} className="text-slate-400"/></div></div>
-        </header>
-        <div className="max-w-[1400px] mx-auto p-5 md:p-9">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"><div><p className="text-sm text-slate-400 mb-1">Bem-vinda de volta 👋</p><h1 className="text-2xl md:text-[30px] font-bold tracking-tight">{active}</h1><p className="text-sm text-slate-500 mt-2">Acompanhe a rotina e os resultados da sua clínica.</p></div><button className="flex items-center justify-center gap-2 rounded-xl bg-[#6654d9] hover:bg-[#5846ca] text-white px-4 py-3 text-sm font-semibold shadow-sm"><Plus size={17}/> Novo agendamento</button></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-7">
-            <Metric label="Atendimentos hoje" value="12" detail="4 próximos" icon={<CalendarCheck size={19}/>} tint="violet"/>
-            <Metric label="Receita recebida no mês" value="R$ 8.450" detail="Valores registrados" icon={<Wallet size={19}/>} tint="green"/>
-            <Metric label="Clientes ativos" value="86" detail="No cadastro da clínica" icon={<Users size={19}/>} tint="blue"/>
-            <Metric label="Próximo atendimento" value="09:00" detail="Mariana Costa" icon={<Clock3 size={19}/>} tint="amber"/>
-          </div>
-          <div className="grid grid-cols-1 xl:grid-cols-[1.55fr_1fr] gap-5">
-            <div className="bg-white rounded-2xl border border-[var(--line)] p-5 md:p-6">
-              <div className="flex items-center justify-between mb-6"><div><h2 className="font-bold text-base">Agenda de hoje</h2><p className="text-xs text-slate-400 mt-1">Resumo dos próximos atendimentos</p></div><button onClick={() => setActive("Agenda")} className="text-sm font-semibold text-[#6654d9]">Ver agenda <ArrowUpRight size={15} className="inline"/></button></div>
-              <div className="space-y-2">{appointments.map((a) => <div key={a.time} className="flex items-center gap-3 py-3 border-b border-slate-100 last:border-0"><div className="text-sm font-semibold text-slate-500 w-12">{a.time}</div><div className={`w-1 h-10 rounded-full ${a.color === "violet" ? "bg-violet-400" : a.color === "amber" ? "bg-amber-400" : "bg-emerald-400"}`}/><div className="min-w-0 flex-1"><div className="text-sm font-semibold truncate">{a.name}</div><div className="text-xs text-slate-400 mt-1">{a.service}</div></div><span className={`text-[11px] rounded-full px-2.5 py-1 font-medium ${a.color === "violet" ? "bg-violet-50 text-violet-700" : a.color === "amber" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{a.status}</span></div>)}</div>
-            </div>
-            <div className="space-y-5">
-              <div className="bg-white rounded-2xl border border-[var(--line)] p-5 md:p-6"><div className="flex justify-between items-center mb-5"><div><h2 className="font-bold">Resumo financeiro</h2><p className="text-xs text-slate-400 mt-1">Outubro · valores de demonstração</p></div><Wallet size={18} className="text-slate-400"/></div><div className="text-3xl font-bold tracking-tight">R$ 8.450,00</div><div className="text-xs text-emerald-600 mt-2 flex items-center gap-1"><ArrowUpRight size={14}/> Entradas efetivamente recebidas</div><div className="h-2 bg-slate-100 rounded-full mt-5 overflow-hidden"><div className="h-full w-[68%] bg-[#8172e8] rounded-full"/></div><div className="flex justify-between text-xs text-slate-400 mt-2"><span>Meta mensal</span><span>68%</span></div></div>
-              <div className="bg-[#6654d9] text-white rounded-2xl p-5 md:p-6"><div className="flex items-center gap-2 text-white/80 text-sm"><CheckCircle2 size={17}/> Tudo organizado</div><h3 className="text-lg font-bold mt-3">Sua clínica em um só lugar</h3><p className="text-sm text-white/75 mt-2 leading-relaxed">Agenda, clientes e gestão financeira em uma experiência simples.</p><button onClick={() => setActive("Relatórios")} className="mt-4 text-sm font-semibold bg-white/15 hover:bg-white/20 rounded-lg px-3 py-2">Explorar relatórios</button></div>
-            </div>
-          </div>
-          <div className="text-center text-xs text-slate-400 mt-8">Prévia de interface · Dados ilustrativos, ainda não conectados ao Supabase</div>
-        </div>
-      </section>
-    </main>
-  );
+ const [user,setUser]=useState<User|null>(null),[clinic,setClinic]=useState<Clinic|null>(null),[role,setRole]=useState(""),[master,setMaster]=useState(false);
+ const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[mode,setMode]=useState<"login"|"signup">("login");
+ const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[clinicName,setClinicName]=useState(""),[message,setMessage]=useState("");
+ const [clientCount,setClientCount]=useState(0),[apptCount,setApptCount]=useState(0),[today,setToday]=useState<Appt[]>([]);
+ const load=useCallback(async(u:User)=>{
+  setUser(u);
+  const {data:m,error}=await supabase.from("clinic_members").select("clinic_id,role").eq("user_id",u.id).eq("active",true).order("created_at").limit(1).maybeSingle();
+  if(error){setMessage("Não foi possível carregar o vínculo com a clínica.");setLoading(false);return;}
+  if(!m){setClinic(null);setRole("");const {data:a}=await supabase.rpc("is_platform_admin");setMaster(Boolean(a));setLoading(false);return;}
+  const {data:c}=await supabase.from("clinics").select("id,name").eq("id",m.clinic_id).maybeSingle();
+  if(!c){setMessage("Não foi possível carregar a clínica.");setLoading(false);return;}
+  setClinic(c);setRole(m.role);setMaster(false);
+  const n=new Date(),from=new Date(n.getFullYear(),n.getMonth(),n.getDate()).toISOString(),to=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1).toISOString();
+  const [a,b,d]=await Promise.all([
+   supabase.from("appointments").select("id",{count:"exact",head:true}).eq("clinic_id",c.id),
+   supabase.from("clients").select("id",{count:"exact",head:true}).eq("clinic_id",c.id),
+   supabase.from("appointments").select("id,starts_at,service_name,status,clients(full_name)").eq("clinic_id",c.id).gte("starts_at",from).lt("starts_at",to).order("starts_at").limit(6)
+  ]);
+  setApptCount(a.count??0);setClientCount(b.count??0);setToday((d.data??[]) as unknown as Appt[]);setLoading(false);
+ },[]);
+ useEffect(()=>{let active=true;supabase.auth.getSession().then(({data})=>{if(active){if(data.session?.user)void load(data.session.user);else setLoading(false);}});
+ const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>{if(!active)return;if(s?.user){setLoading(true);void load(s.user);}else{setUser(null);setClinic(null);setRole("");setMaster(false);setLoading(false);}});
+ return()=>{active=false;sub.subscription.unsubscribe();};},[load]);
+ async function auth(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
+  if(mode==="login"){const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(error)setMessage("Login não realizado. Confira seu e-mail e senha.");}
+  else {const {data,error}=await supabase.auth.signUp({email:email.trim(),password});if(error)setMessage(error.message);else if(!data.session)setMessage("Cadastro enviado! Confirme o e-mail recebido para entrar.");else setMessage("Conta criada. Cadastre sua clínica abaixo.");}
+  setBusy(false);
+ }
+ async function createClinic(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");const {error}=await supabase.rpc("create_clinic_for_current_user",{clinic_name:clinicName.trim()});if(error)setMessage(error.message);else if(user)await load(user);setBusy(false);}
+ async function logout(){await supabase.auth.signOut();}
+ if(loading)return <main className="min-h-screen grid place-items-center bg-[#f7f7fb]"><p className="flex gap-3 text-slate-500"><LoaderCircle className="animate-spin"/> Carregando seu espaço...</p></main>;
+ if(!user)return <main className="min-h-screen grid lg:grid-cols-2 bg-[#f8f7fc]">
+  <section className="hidden lg:flex flex-col justify-between p-14 bg-[#6253d8] text-white"><Brand light/><div className="max-w-lg"><p className="inline-flex gap-2 bg-white/15 rounded-full px-3 py-2 text-sm">✦ Gestão feita para clínicas</p><h1 className="text-5xl font-bold leading-tight mt-6">Sua rotina mais leve. Sua clínica mais organizada.</h1><p className="mt-5 text-lg text-white/75">Agenda, clientes e gestão dos atendimentos em um só lugar.</p></div><p className="text-sm text-white/60">Laser Day Pro · Gestão inteligente</p></section>
+  <section className="flex items-center justify-center p-5 sm:p-10"><div className="w-full max-w-md bg-white border border-[#e9e7f2] rounded-3xl p-7 sm:p-9 shadow-sm"><div className="lg:hidden mb-8"><Brand/></div><p className="text-sm font-semibold text-[#6654d9]">{mode==="login"?"Bem-vinda de volta":"Comece por aqui"}</p><h2 className="text-2xl font-bold mt-2">{mode==="login"?"Entrar na sua conta":"Criar acesso"}</h2><p className="text-sm text-slate-500 mt-2 mb-6">Use seu e-mail para acessar o Laser Day Pro.</p>
+   <form onSubmit={auth} className="space-y-4"><label className="block text-sm font-medium">E-mail<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@clinica.com.br" className="field"/></label><label className="block text-sm font-medium">Senha<input type="password" required minLength={6} value={password} onChange={e=>setPassword(e.target.value)} autoComplete={mode==="login"?"current-password":"new-password"} placeholder="Mínimo de 6 caracteres" className="field"/></label><button disabled={busy} className="w-full rounded-xl bg-[#6654d9] text-white font-semibold py-3.5 flex items-center justify-center gap-2 disabled:opacity-60">{busy?<LoaderCircle className="animate-spin"/>:<>{mode==="login"?"Entrar":"Criar conta"}<ArrowRight size={17}/></>}</button></form>
+   <p className="text-center text-sm text-slate-500 mt-6">{mode==="login"?"Ainda não tem acesso?":"Já possui conta?"} <button className="font-semibold text-[#6654d9]" onClick={()=>{setMode(mode==="login"?"signup":"login");setMessage("");}}>{mode==="login"?"Criar conta":"Fazer login"}</button></p>{message&&<p role="status" className="mt-4 rounded-xl bg-violet-50 p-3 text-sm text-violet-800">{message}</p>}<div className="flex items-center justify-center gap-2 text-xs text-slate-400 mt-7"><ShieldCheck size={14}/> Acesso protegido</div>
+  </div></section></main>;
+ if(!clinic)return <main className="min-h-screen bg-[#f8f7fc] flex items-center justify-center p-5"><div className="w-full max-w-lg bg-white border border-[#e9e7f2] rounded-3xl p-8 shadow-sm"><Brand/><div className="mt-8"><div className="w-12 h-12 rounded-2xl bg-violet-50 text-[#6654d9] grid place-items-center"><Building2/></div><h1 className="text-2xl font-bold mt-5">Cadastre sua clínica</h1><p className="text-sm text-slate-500 mt-2">Este usuário ainda não está vinculado a uma clínica. Informe o nome para criar seu espaço.</p></div>{master&&<div className="mt-4 flex gap-2 rounded-xl bg-emerald-50 text-emerald-800 p-3 text-sm"><ShieldCheck size={17}/> Conta master da plataforma reconhecida.</div>}<form onSubmit={createClinic} className="mt-6 space-y-4"><label className="block text-sm font-medium">Nome da clínica<input required minLength={2} maxLength={120} value={clinicName} onChange={e=>setClinicName(e.target.value)} placeholder="Ex.: Clínica Aurea" className="field"/></label><button disabled={busy} className="w-full rounded-xl bg-[#6654d9] text-white font-semibold py-3.5 flex items-center justify-center gap-2">{busy?<LoaderCircle className="animate-spin"/>:<>Criar clínica <ArrowRight size={17}/></>}</button></form>{message&&<p role="status" className="mt-4 text-sm text-rose-600">{message}</p>}<button onClick={logout} className="mt-5 text-sm text-slate-500">Sair da conta</button></div></main>;
+ return <main className="min-h-screen bg-[#f7f7fb]"><header className="h-[76px] bg-white border-b border-[#ecebf2] flex items-center justify-between px-5 md:px-9"><Brand/><div className="flex items-center gap-3"><div className="hidden sm:block text-right"><p className="text-sm font-semibold">{user.email}</p><p className="text-xs text-slate-400">{role==="owner"?"Proprietário(a)":role==="admin"?"Administrador(a)":"Equipe da clínica"}</p></div><button onClick={logout} aria-label="Sair" className="w-10 h-10 rounded-xl grid place-items-center text-slate-500 hover:bg-slate-100"><LogOut size={18}/></button></div></header>
+ <div className="max-w-6xl mx-auto p-5 md:p-9"><p className="text-sm text-slate-400 mb-1">Seu espaço de trabalho</p><h1 className="text-3xl font-bold tracking-tight">{clinic.name}</h1><p className="text-sm text-slate-500 mt-2 mb-8">Resumo com informações consultadas no banco de dados.</p><div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4"><Metric title="Agendamentos cadastrados" value={String(apptCount)} icon={<CalendarDays size={20}/>} note="Total da clínica"/><Metric title="Clientes cadastrados" value={String(clientCount)} icon={<Users size={20}/>} note="Total da clínica"/><Metric title="Receita recebida" value="—" icon={<Wallet size={20}/>} note="Módulo financeiro na próxima etapa"/></div>
+ <section className="mt-6 rounded-2xl border border-[#ecebf2] bg-white p-5 md:p-6"><h2 className="font-bold">Agenda de hoje</h2><p className="text-xs text-slate-400 mt-1">Atendimentos reais do dia</p>{today.length?<div className="mt-4 divide-y divide-slate-100">{today.map(a=><div key={a.id} className="py-3 flex items-center gap-3"><span className="text-sm font-semibold text-slate-500 w-16">{new Date(a.starts_at).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</span><div className="flex-1"><p className="text-sm font-semibold">{a.clients?.full_name??"Cliente"}</p><p className="text-xs text-slate-400 mt-1">{a.service_name}</p></div><span className="text-xs rounded-full bg-violet-50 text-violet-700 px-3 py-1">{label(a.status)}</span></div>)}</div>:<p className="mt-5 rounded-xl bg-slate-50 p-5 text-center text-sm text-slate-500">Nenhum agendamento para hoje. O cadastro pela agenda será a próxima entrega.</p>}</section><p className="text-center text-xs text-slate-400 mt-8">Laser Day Pro · MVP em construção</p></div></main>;
 }
-
-function Metric({ label, value, detail, icon, tint }: { label: string; value: string; detail: string; icon: React.ReactNode; tint: string }) {
-  const styles: Record<string, string> = { violet: "bg-violet-50 text-violet-600", green: "bg-emerald-50 text-emerald-600", blue: "bg-sky-50 text-sky-600", amber: "bg-amber-50 text-amber-600" };
-  return <div className="bg-white rounded-2xl border border-[var(--line)] p-5"><div className="flex justify-between items-start"><div className="text-sm text-slate-500">{label}</div><div className={`w-9 h-9 rounded-xl grid place-items-center ${styles[tint]}`}>{icon}</div></div><div className="text-2xl font-bold tracking-tight mt-4">{value}</div><div className="text-xs text-slate-400 mt-1">{detail}</div></div>;
-}
+function Brand({light=false}:{light?:boolean}){return <div className={`flex items-center gap-3 ${light?"text-white":"text-slate-900"}`}><div className="w-10 h-10 rounded-2xl bg-[#6654d9] text-white grid place-items-center font-bold text-lg">L</div><div><div className="font-bold tracking-tight text-[17px]">Laser Day <span className="text-[#6654d9]">Pro</span></div><div className={`text-xs ${light?"text-white/60":"text-slate-400"}`}>Gestão inteligente</div></div></div>}
+function Metric({title,value,icon,note}:{title:string;value:string;icon:React.ReactNode;note:string}){return <div className="bg-white rounded-2xl border border-[#ecebf2] p-5"><div className="flex justify-between items-start"><div className="text-sm text-slate-500">{title}</div><div className="w-10 h-10 rounded-xl bg-violet-50 text-[#6654d9] grid place-items-center">{icon}</div></div><div className="text-3xl font-bold mt-4">{value}</div><div className="text-xs text-slate-400 mt-1">{note}</div></div>}
+function label(s:string){return ({pending_confirmation:"Aguardando",confirmed:"Confirmado",in_progress:"Em atendimento",completed:"Concluído",no_show:"Não compareceu",canceled:"Cancelado"} as Record<string,string>)[s]??s}
