@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
           {busy?<LoaderCircle className="animate-spin"/>:"Salvar nova senha"}
         </button>
       </form>}
-      {message&&<p role="status" className={`mt-4 rounded-xl p-3 text-sm ${saved?"bg-emerald-50 text-emerald-800":"bg-violet-50 text-violet-800"}`}>{saved&&<CheckCircle2 className="inline mr-1" size={16}/ >}{message}</p>}
+      {message&&<p role="status" className={`mt-4 rounded-xl p-3 text-sm ${saved?"bg-emerald-50 text-emerald-800":"bg-violet-50 text-violet-800"}`}>{saved&&<CheckCircle2 className="inline mr-1" size={16}/>}{message}</p>}
       {saved?<a href="/" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#6654d9]"><ArrowLeft size={16}/> Ir para o login</a>:<a href="/recuperar-senha" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#6654d9]"><ArrowLeft size={16}/> Solicitar outro link</a>}
     </section>
   </main>;
